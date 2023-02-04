@@ -6,12 +6,19 @@ module.exports = {
   ],
   theme: {
     extend: {
+      backgroundImage: {
+        "hero-pattern":
+          "url('https://cryptochanger.to/assets/images/pattern1.svg')",
+      },
       fontFamily: {
         Inter: ["Inter", "sans-serif"],
+        Titillium: ["Titillium Web", "sans-serif"],
       },
       colors: {
         blackPrim: "#1a1a1a",
         blackSec: "#242424",
+        blackTert: "#393939",
+        blackSoft: "#212121",
         whitePrim: "#fcfcfc",
         nearWhite: "#888888",
         primYellow: "#ffffd2",
@@ -33,5 +40,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwind-scrollbar")],
+  plugins: [require("tailwind-scrollbar")({ nocompatible: true })],
 };
