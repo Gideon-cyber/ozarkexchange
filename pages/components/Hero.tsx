@@ -3,10 +3,20 @@ import Link from "next/link";
 import { Icon } from "@iconify/react";
 import { Cursor, useTypewriter } from "react-simple-typewriter";
 import Image from "next/image";
+import { Coin } from "../../types";
+import { Dispatch, SetStateAction } from "react";
+import { useAppSelector, useAppDispatch } from "../../redux/hooks";
 
-type Props = {};
+type Props = {
+  setShowCoinsModal: Dispatch<SetStateAction<boolean>>;
+  showCoinsModal: boolean;
+};
 
-const Hero = (props: Props) => {
+const Hero = ({ setShowCoinsModal, showCoinsModal }: Props) => {
+  const dispatch = useAppDispatch();
+  const { youReceiveCoin: receiveCoin, youSendCoin: sendCoin } = useAppSelector(
+    (state) => state.users
+  );
   const [text, count] = useTypewriter({
     words: [
       "The fastest, Lowest fees",
@@ -80,22 +90,30 @@ const Hero = (props: Props) => {
                   type="text"
                   className="outline-none text-[20px] border-transparent bg-transparent text-whitePrim"
                   value="0.1"
+                  onChange={() => {}}
                 />
                 <span className="font-b-500 font-Titillium text-[#999999] pb-[0.125rem]">
                   ≈ $2345.13
                 </span>
               </div>
-              <div className="flex items-center justify-center font-b-500 font-Titillium cursor-pointer text-[21px] border-l border-l-blackTert h-[88px] pl-[1.2rem] py-[0.5rem] w-[50%] md:w-auto ">
+              <div
+                className="flex items-center justify-center font-b-500 font-Titillium cursor-pointer text-[21px] border-l border-l-blackTert h-[88px] pl-[1.2rem] py-[0.5rem] w-[50%] md:w-auto "
+                onClick={() => {
+                  setShowCoinsModal(!showCoinsModal);
+                }}
+              >
                 <div className="w-[2rem] mr-[0.5rem]">
                   <Image
-                    src="https://cryptochanger.to/assets/images/icons/btc.png"
+                    src={sendCoin.image}
                     alt="image"
                     width={32}
                     height={32}
                     className=""
                   />
                 </div>
-                <span className="text-[#999999]">BTC</span>
+                <span className="text-[#999999]">
+                  {sendCoin.ticker.toUpperCase()}
+                </span>
               </div>
             </div>
             <div className="flex items-end justify-end cursor-pointer ">
@@ -114,22 +132,28 @@ const Hero = (props: Props) => {
                   type="text"
                   className="outline-none text-[20px] border-transparent bg-transparent text-whitePrim"
                   value="1.3933669"
+                  onChange={() => {}}
                 />
                 <span className="font-b-500 font-Titillium text-[#999999] pb-[0.125rem]">
                   ≈ $2316.07
                 </span>
               </div>
-              <div className="flex items-center justify-center font-b-500 font-Titillium cursor-pointer text-[21px] border-l border-l-blackTert h-[88px] pl-[1.2rem] py-[0.5rem] w-[50%] md:w-auto">
+              <div
+                className="flex items-center justify-center font-b-500 font-Titillium cursor-pointer text-[21px] border-l border-l-blackTert h-[88px] pl-[1.2rem] py-[0.5rem] w-[50%] md:w-auto"
+                onClick={() => setShowCoinsModal(!showCoinsModal)}
+              >
                 <div className="w-[2rem] mr-[0.5rem]">
                   <Image
-                    src="https://cryptochanger.to/assets/images/icons/eth.png"
+                    src={receiveCoin.image}
                     alt="image"
                     width={32}
                     height={32}
                     className=""
                   />
                 </div>
-                <span className="text-[#999999]">ETH</span>
+                <span className="text-[#999999]">
+                  {receiveCoin.ticker.toUpperCase()}
+                </span>
               </div>
             </div>
 
@@ -143,6 +167,7 @@ const Hero = (props: Props) => {
                   type="text"
                   className="outline-none text-[20px] border-transparent bg-transparent text-whitePrim"
                   placeholder="ETH address"
+                  onChange={() => {}}
                 />
               </div>
             </div>
