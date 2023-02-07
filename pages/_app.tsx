@@ -6,9 +6,12 @@ import { PersistGate } from "redux-persist/integration/react";
 import { persistStore } from "redux-persist";
 
 export default function App({ Component, pageProps }: AppProps) {
+  let persistor = persistStore(store);
   return (
     <Provider store={store}>
-      <Component {...pageProps} />
+      <PersistGate persistor={persistor}>
+        <Component {...pageProps} />
+      </PersistGate>
     </Provider>
   );
 }

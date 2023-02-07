@@ -1,22 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
 import { Cursor, useTypewriter } from "react-simple-typewriter";
 import Image from "next/image";
-import { Coin } from "../../types";
-import { Dispatch, SetStateAction } from "react";
 import { useAppSelector, useAppDispatch } from "../../redux/hooks";
+import { setFirstCoinClicked, setShowCoinsModal } from "../../redux/userSlice";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
 
-type Props = {
-  setShowCoinsModal: Dispatch<SetStateAction<boolean>>;
-  showCoinsModal: boolean;
-};
+type Props = {};
 
-const Hero = ({ setShowCoinsModal, showCoinsModal }: Props) => {
+const Hero = ({}: Props) => {
   const dispatch = useAppDispatch();
-  const { youReceiveCoin: receiveCoin, youSendCoin: sendCoin } = useAppSelector(
-    (state) => state.users
-  );
+  const {
+    youReceiveCoin: receiveCoin,
+    youSendCoin: sendCoin,
+    showCoinsModal,
+    firstCoinClicked,
+  } = useAppSelector((state) => state.users);
   const [text, count] = useTypewriter({
     words: [
       "The fastest, Lowest fees",
@@ -28,6 +30,56 @@ const Hero = ({ setShowCoinsModal, showCoinsModal }: Props) => {
   });
   const [selected, setSelected] = useState(0);
   const nav = ["FIXED RATE", "FLOATING RATE"];
+
+  const minimumExchangeAmount = () => {
+    const config = {
+      method: "get",
+      url: `https://api.changenow.io/v1/min-amount/${sendCoin.ticker}_${receiveCoin.ticker}?api_key=${process.env.NEXT_PUBLIC_API_KEY}`,
+      headers: {},
+    };
+
+    axios(config)
+      .then((response: any) => {
+        console.log(JSON.stringify(response.data));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  };
+
+  const exchangeRange = () => {
+    const config = {
+      method: "get",
+      url: `https://api.changenow.io/v1/exchange-range/${sendCoin.ticker}_${receiveCoin.ticker}?api_key=${process.env.NEXT_PUBLIC_API_KEY}`,
+      headers: {},
+    };
+
+    axios(config)
+      .then((response: any) => {
+        console.log(response.data);
+        toast.warn(
+          `Min is ${response.data.minAmount} ${
+            !firstCoinClicked
+              ? receiveCoin.ticker?.toUpperCase()
+              : sendCoin.ticker?.toUpperCase()
+          } and Max is ${response.data.maxAmount === null && "infinite"} ${
+            !firstCoinClicked
+              ? receiveCoin.ticker?.toUpperCase()
+              : sendCoin.ticker?.toUpperCase()
+          }`
+        );
+        // console.log(JSON.stringify(response.data));
+      })
+      .catch((error: any) => {
+        console.log(error);
+      });
+  };
+
+  useEffect(() => {
+    minimumExchangeAmount();
+    exchangeRange();
+  }, [receiveCoin, sendCoin]);
+
   return (
     <div className="max-w-7xl md:h-screen mx-auto w-full pt-[3rem] bg-hero-pattern bg-center bg-no-repeat">
       <div className="flex items-center flex-col gap-5 md:gap-0 justify-between md:flex-row">
@@ -99,12 +151,13 @@ const Hero = ({ setShowCoinsModal, showCoinsModal }: Props) => {
               <div
                 className="flex items-center justify-center font-b-500 font-Titillium cursor-pointer text-[21px] border-l border-l-blackTert h-[88px] pl-[1.2rem] py-[0.5rem] w-[50%] md:w-auto "
                 onClick={() => {
-                  setShowCoinsModal(!showCoinsModal);
+                  dispatch(setShowCoinsModal());
+                  dispatch(setFirstCoinClicked(true));
                 }}
               >
                 <div className="w-[2rem] mr-[0.5rem]">
                   <Image
-                    src={sendCoin.image}
+                    src={sendCoin?.image || ""}
                     alt="image"
                     width={32}
                     height={32}
@@ -112,7 +165,7 @@ const Hero = ({ setShowCoinsModal, showCoinsModal }: Props) => {
                   />
                 </div>
                 <span className="text-[#999999]">
-                  {sendCoin.ticker.toUpperCase()}
+                  {sendCoin?.ticker?.toUpperCase()}
                 </span>
               </div>
             </div>
@@ -140,11 +193,14 @@ const Hero = ({ setShowCoinsModal, showCoinsModal }: Props) => {
               </div>
               <div
                 className="flex items-center justify-center font-b-500 font-Titillium cursor-pointer text-[21px] border-l border-l-blackTert h-[88px] pl-[1.2rem] py-[0.5rem] w-[50%] md:w-auto"
-                onClick={() => setShowCoinsModal(!showCoinsModal)}
+                onClick={() => {
+                  dispatch(setShowCoinsModal());
+                  dispatch(setFirstCoinClicked(false));
+                }}
               >
                 <div className="w-[2rem] mr-[0.5rem]">
                   <Image
-                    src={receiveCoin.image}
+                    src={receiveCoin?.image || ""}
                     alt="image"
                     width={32}
                     height={32}
@@ -152,7 +208,7 @@ const Hero = ({ setShowCoinsModal, showCoinsModal }: Props) => {
                   />
                 </div>
                 <span className="text-[#999999]">
-                  {receiveCoin.ticker.toUpperCase()}
+                  {receiveCoin?.ticker?.toUpperCase()}
                 </span>
               </div>
             </div>

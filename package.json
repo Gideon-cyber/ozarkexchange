@@ -20,6 +20,7 @@
     "redux": "^4.2.0",
     "redux-persist": "^6.0.0",
     "tailwind-scrollbar": "^2.1.0",
+    "react-toastify": "^9.1.1",
     "@reduxjs/toolkit": "^1.9.1"
   },
   "devDependencies": {

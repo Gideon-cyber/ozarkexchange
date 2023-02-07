@@ -1,21 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import Coins from "./Coins";
 import Pagination from "./Pagination";
 import { Coin } from "../../types";
-import { Dispatch, SetStateAction } from "react";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { setShowCoinsModal } from "../../redux/userSlice";
 
 type Props = {
   FeaturedCoins: Coin[];
-  showCoinsModal: boolean;
-  setShowCoinsModal: Dispatch<SetStateAction<boolean>>;
 };
 
-const SelectCoinModal = ({
-  FeaturedCoins,
-  setShowCoinsModal,
-  showCoinsModal,
-}: Props) => {
+const SelectCoinModal = ({ FeaturedCoins }: Props) => {
+  const dispatch = useAppDispatch();
+  const { showCoinsModal } = useAppSelector((state) => state.users);
   const [currentPage, setCurrentPage] = useState(1);
   const [coinsPerPage] = useState(100);
 
@@ -33,8 +30,16 @@ const SelectCoinModal = ({
 
   //Filtered coins on search
   const filteredCoins = currentFeaturedCoins.filter((coin) =>
-    coin.name.toLowerCase().includes(searchField.toLowerCase())
+    coin?.name?.toLowerCase().includes(searchField.toLowerCase())
   );
+
+  useEffect(() => {
+    if (showCoinsModal) {
+      dispatch(setShowCoinsModal());
+    } else {
+      dispatch(setShowCoinsModal());
+    }
+  }, []);
 
   return (
     <div className="h-screen w-full fixed top-0 bottom-0 bg-blackPrim z-[500] flex items-center flex-col">
@@ -47,7 +52,7 @@ const SelectCoinModal = ({
           {/*icon*/}
           <div
             className="text-[24px] cursor-pointer"
-            onClick={() => setShowCoinsModal(!showCoinsModal)}
+            onClick={() => dispatch(setShowCoinsModal())}
           >
             <Icon icon="ic:outline-close" />
           </div>

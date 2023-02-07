@@ -5,26 +5,10 @@ import type { Coin, userState } from "../types";
 
 // Define the initial state using that type
 const initialState: userState = {
-  youSendCoin: {
-    ticker: "btc",
-    name: "Bitcoin",
-    image: "https://content-api.changenow.io/uploads/btc_d8db07f87d.svg",
-    hasExternalId: false,
-    isFiat: false,
-    featured: true,
-    isStable: false,
-    supportsFixedRate: true,
-  },
-  youReceiveCoin: {
-    ticker: "eth",
-    name: "Ethereum",
-    image: "https://content-api.changenow.io/uploads/eth_f4ebb54ec0.svg",
-    hasExternalId: false,
-    isFiat: false,
-    featured: true,
-    isStable: false,
-    supportsFixedRate: true,
-  },
+  youSendCoin: {},
+  youReceiveCoin: {},
+  showCoinsModal: false,
+  firstCoinClicked: false,
 };
 
 export const userSlice = createSlice({
@@ -38,9 +22,20 @@ export const userSlice = createSlice({
     setReceiveCoin: (state, action: PayloadAction<Coin>) => {
       state.youReceiveCoin = action.payload;
     },
+    setShowCoinsModal: (state) => {
+      state.showCoinsModal = !state.showCoinsModal;
+    },
+    setFirstCoinClicked: (state, action: PayloadAction<boolean>) => {
+      state.firstCoinClicked = action.payload;
+    },
   },
 });
 
-export const { setSendCoin, setReceiveCoin } = userSlice.actions;
+export const {
+  setSendCoin,
+  setReceiveCoin,
+  setShowCoinsModal,
+  setFirstCoinClicked,
+} = userSlice.actions;
 
 export default userSlice.reducer;
