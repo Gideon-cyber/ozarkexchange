@@ -8,6 +8,7 @@ import { setFirstCoinClicked, setShowCoinsModal } from "../../redux/userSlice";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import { Coin } from "../../types";
 
 type Props = {};
 
@@ -30,6 +31,20 @@ const Hero = ({}: Props) => {
   });
   const [selected, setSelected] = useState(0);
   const nav = ["FIXED RATE", "FLOATING RATE"];
+  const [minExAmount, setMinExAmount] = useState(0);
+  const [formData, setFormData] = useState({
+    youSend: "0.1",
+    youReceive: "",
+    youSendUsdt: "",
+    youReceiveUsdt: "",
+    address: "",
+  });
+
+  const onSendChange = (e: any) => {
+    const { name, value } = e.target;
+    setFormData((prevState) => ({ ...prevState, [name]: value }));
+    estimatedExchangeAmount();
+  };
 
   const minimumExchangeAmount = () => {
     const config = {
@@ -40,10 +55,12 @@ const Hero = ({}: Props) => {
 
     axios(config)
       .then((response: any) => {
-        console.log(JSON.stringify(response.data));
+        // console.log(JSON.stringify(response.data));
+        setMinExAmount(response.data.minAmount);
       })
       .catch((error: any) => {
         console.log(error);
+        toast.error(error);
       });
   };
 
@@ -72,12 +89,92 @@ const Hero = ({}: Props) => {
       })
       .catch((error: any) => {
         console.log(error);
+        toast.error(error);
+      });
+  };
+
+  const estimatedExchangeAmount = () => {
+    const config = {
+      method: "get",
+      url: `https://api.changenow.io/v1/exchange-amount/${Number(
+        formData.youSend
+      )}/${sendCoin.ticker}_${receiveCoin.ticker}?api_key=${
+        process.env.NEXT_PUBLIC_API_KEY
+      }`,
+      headers: {},
+    };
+
+    axios(config)
+      .then((response: any) => {
+        // console.log(JSON.stringify(response.data));
+        setFormData((prevState) => ({
+          ...prevState,
+          youReceive: response.data.estimatedAmount,
+        }));
+      })
+      .then(() => {
+        estimatedExchangeAmountUsdt(sendCoin);
+      })
+      .then(() => {
+        estimatedExchangeAmountUsdt(receiveCoin);
+      })
+      .catch((error: any) => {
+        console.log(error);
+        toast.error(error);
+      });
+  };
+
+  const estimatedExchangeAmountUsdt = (Coin: Coin) => {
+    const config = {
+      method: "get",
+      url: `https://api.changenow.io/v1/exchange-amount/${
+        JSON.stringify(Coin) === JSON.stringify(sendCoin)
+          ? Number(formData.youSend)
+          : Number(formData.youReceive)
+      }/${Coin?.ticker}_usdt?api_key=${process.env.NEXT_PUBLIC_API_KEY}`,
+      headers: {},
+    };
+
+    axios(config)
+      .then((response: any) => {
+        // console.log(JSON.stringify(response.data));
+
+        if (JSON.stringify(Coin) === JSON.stringify(sendCoin)) {
+          setFormData((prevState) => ({
+            ...prevState,
+            youSendUsdt: response.data.estimatedAmount,
+          }));
+        }
+
+        if (JSON.stringify(Coin) === JSON.stringify(receiveCoin)) {
+          console.log(response.data);
+          setFormData((prevState) => ({
+            ...prevState,
+            youReceiveUsdt: response.data.estimatedAmount,
+          }));
+        }
+        // setFormData((prevState) => ({
+        //   ...prevState,
+        //   youReceive: response.data.estimatedAmount,
+        // }));
+      })
+      .catch((error: any) => {
+        console.log(error);
+        toast.error(error);
       });
   };
 
   useEffect(() => {
     minimumExchangeAmount();
     exchangeRange();
+    estimatedExchangeAmount();
+    // estimatedExchangeAmountUsdt();
+
+    setFormData((prevState) => ({ ...prevState, youSend: "0.1" }));
+
+    if (Number(formData.youSend) < minExAmount) {
+      toast.error("Amount cannot be less than minimum exchange amount");
+    }
   }, [receiveCoin, sendCoin]);
 
   return (
@@ -141,11 +238,18 @@ const Hero = ({}: Props) => {
                 <input
                   type="text"
                   className="outline-none text-[20px] border-transparent bg-transparent text-whitePrim"
-                  value="0.1"
-                  onChange={() => {}}
+                  value={formData.youSend}
+                  name="youSend"
+                  onChange={onSendChange}
                 />
                 <span className="font-b-500 font-Titillium text-[#999999] pb-[0.125rem]">
-                  ≈ $2345.13
+                  ≈ $
+                  {`${formData.youSendUsdt
+                    .toString()
+                    .slice(
+                      0,
+                      formData.youSendUsdt.toString().indexOf(".") + 3
+                    )}`}
                 </span>
               </div>
               <div
@@ -184,11 +288,18 @@ const Hero = ({}: Props) => {
                 <input
                   type="text"
                   className="outline-none text-[20px] border-transparent bg-transparent text-whitePrim"
-                  value="1.3933669"
-                  onChange={() => {}}
+                  name="youReceive"
+                  value={formData.youReceive}
+                  onChange={onSendChange}
                 />
                 <span className="font-b-500 font-Titillium text-[#999999] pb-[0.125rem]">
-                  ≈ $2316.07
+                  ≈ $
+                  {`${formData.youReceiveUsdt
+                    .toString()
+                    .slice(
+                      0,
+                      formData.youReceiveUsdt.toString().indexOf(".") + 3
+                    )}`}
                 </span>
               </div>
               <div
@@ -221,14 +332,20 @@ const Hero = ({}: Props) => {
                 </span>
                 <input
                   type="text"
+                  name="address"
                   className="outline-none text-[20px] border-transparent bg-transparent text-whitePrim"
                   placeholder="ETH address"
-                  onChange={() => {}}
+                  onChange={onSendChange}
                 />
               </div>
             </div>
 
-            <button className="border border-blackTert bg-blackSoft rounded-[4px] text-[24px] cursor-pointer mt-4 px-[1.5rem] py-[1.5rem] w-full">
+            <button
+              className="border border-blackTert bg-blackSoft rounded-[4px] text-[24px] cursor-pointer mt-4 px-[1.5rem] py-[1.5rem] w-full"
+              onClick={() => {
+                console.log(formData);
+              }}
+            >
               Exchange now
             </button>
           </div>
